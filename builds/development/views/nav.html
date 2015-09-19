@@ -1,0 +1,9 @@
+<div class="table">
+  <ul>
+    <li class="branding"><a ng-href="#/">angularData</a></li>
+    <li ng-show="currentUser">
+      <a ng-href="#/meetings">Meetings <span ng-if="howManyMeetings>0">({{howManyMeetings}})</span></a></li>
+    <li ng-hide="currentUser"><a ng-href="#/login">Login</a></li>
+    <li ng-hide="currentUser"><a ng-href="#/register">Register</a></li>
+  </ul>
+</div>
