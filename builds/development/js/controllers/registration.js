@@ -1,23 +1,17 @@
-myApp.controller('RegistrationController',
-  function($scope, $firebaseSimpleLogin, $location, Authentication) {
+appControllers.controller('RegistrationController', ['$scope', 'Authentication', function ($scope, Authentication) {
+    'use strict';
 
-  $scope.login = function() {
-    Authentication.login($scope.user)
-      .then(function(user) {
-      $location.path('/meetings');
-    }, function(error) {
-      $scope.message = error.toString();
-    });
-  } //login
+    $scope.login = function () {
+        Authentication.login($scope.user);
+    };//login
 
-  $scope.register = function() {
-    Authentication.register($scope.user)
-      .then(function(user) {
-      Authentication.login($scope.user);
-      $location.path('/meetings');
-    }, function(error) {
-      $scope.message = error.toString();
-    });
-  } //login
+    $scope.register = function () {
+        Authentication.register($scope.user);
+    };//register
 
-}); //RegistrationController
+
+}]); //RegistrationController
+
+ /*$scope.$on('$viewContentLoaded', function () {
+        //console.log($scope.myform);
+    });*/

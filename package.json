@@ -7,9 +7,13 @@
     "url": "https://github.com/planetoftheweb/angulardata.git"
   },
   "author": "Ray Villalobos",
+    "scripts": {
+    "start": "forever -w server.js"
+  },
   "devDependencies": {
     "gulp": "^3.8.8",
     "gulp-util": "^2.2.20",
-    "gulp-webserver": "^0.8.1"
+    "gulp-webserver": "^0.8.1",
+    "mime": "^1.2.11"
   }
 }

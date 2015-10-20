@@ -1,59 +1,73 @@
-myApp.factory('Authentication', function($firebase,
-  $firebaseSimpleLogin, FIREBASE_URL, $rootScope, $location) {
+myApp.factory('Authentication', ['$rootScope', '$firebaseAuth', '$firebaseObject', 'FIREBASE_URL', '$location', function ($rootScope, $firebaseAuth, $firebaseObject, FIREBASE_URL, $location) {
 
-  var ref = new Firebase(FIREBASE_URL);
-  var simpleLogin = $firebaseSimpleLogin(ref);
+    'use strict';
 
-  var myObject = {
+    var ref = new Firebase(FIREBASE_URL),
+        authObj = $firebaseAuth(ref),
+        factoryObject = {
 
-    login : function(user) {
+            register: function (user) {
+                return ref.createUser({
+                    email: user.email,
+                    password: user.password
+                }, function (error, userData) {
+                    if (error) {
+                        $rootScope.registerMsg = error.toString();
+                    } else {
+                        var ref = new Firebase(FIREBASE_URL + 'users'),
+                            userInfo = {
+                                date: Firebase.ServerValue.TIMESTAMP,
+                                regUser: userData.uid,
+                                firstname: user.firstname,
+                                lastname: user.lastname,
+                                email: user.email
+                            };
 
-      var userRef = new Firebase(FIREBASE_URL + '/users/' + user.uid);
-      var userObj = $firebase(userRef).$asObject();
+                        ref.child(userData.uid).set(userInfo);
 
-      userObj.$loaded().then(function() {
-        $rootScope.currentUser = userObj;
-      });
+                        factoryObject.login(user); //authenticate / login user
+                    }
+                });
+            }, //register
 
-      return simpleLogin.$login('password', {
-        email: user.email,
-        password: user.password
-      });
-    }, //login
+            login: function (user) {
+                return ref.authWithPassword({
+                    email: user.email,
+                    password: user.password
+                }, function (error, authData) {
+                    if (error) {
+                        $rootScope.loginMsg = error.toString();
+                    } else {
+                        $location.path('/meetings');
+                    }
+                });
+            },//login
 
-    register : function(user) {
-      return simpleLogin.$createUser(user.email, user.password)
-      .then(function(regUser){
-        var ref = new Firebase(FIREBASE_URL + 'users');
-        var firebaseUsers = $firebase(ref);
+            logout: function (user) {
+                authObj.$unauth();
+                $rootScope.currentUser = null;
+            }//logout
 
-        var userInfo = {
-          date: Firebase.ServerValue.TIMESTAMP,
-          regUser: regUser.uid,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          email: user.email
+        }; //factoryObject
+
+    authObj.$onAuth(function (authUser) {
+
+        if (authUser) {
+
+            var ref = new Firebase(FIREBASE_URL + 'users/' + authUser.uid),
+                user = $firebaseObject(ref);
+
+            $rootScope.currentUser = user;
+
+        } else {
+            $rootScope.currentUser = null;
         }
 
-        firebaseUsers.$set(regUser.uid, userInfo);
-      }); //add user
-    }, //register
+    }); //$onAuth
 
-    logout : function() {
-      return simpleLogin.$logout();
-    }, //logout
+    $rootScope.signedIn = function () {
+        return $rootScope.currentUser;
+    };
 
-    signedIn: function() {
-      return simpleLogin.user != null;
-    }
-
-  } //myObject
-
-  //add the function to the rootScope
-
-  $rootScope.signedIn = function() {
-    return myObject.signedIn();
-  }
-
-  return myObject;
-});
+    return factoryObject;
+}]);

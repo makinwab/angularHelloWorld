@@ -1,72 +1,71 @@
-myApp.controller('CheckInsController', function(
-  $scope, $rootScope, $firebase, $routeParams,
-  $firebaseSimpleLogin, $location, FIREBASE_URL) {
+appControllers.controller('CheckInsController', [ '$scope', '$rootScope', '$location', '$firebaseObject', '$firebaseArray', '$routeParams', 'FIREBASE_URL', function ($scope, $rootScope, $location, $firebaseObject, $firebaseArray, $routeParams, FIREBASE_URL) {
+    'use strict';
+    $scope.whichmeeting = $routeParams.mId;
+    $scope.whichuser = $routeParams.uId;
+    $scope.order = "firstname";
+    $scope.direction = "";
 
-  $scope.whichmeeting = $routeParams.mId;
-  $scope.whichuser = $routeParams.uId;
-  $scope.order="firstname";
-  $scope.direction="";
+    var ref = new Firebase(FIREBASE_URL + '/users/' + $scope.whichuser + '/meetings/' + $scope.whichmeeting + '/checkins'),
+        checkinsList = $firebaseArray(ref);
+    $scope.checkins = checkinsList;
 
-  var ref = new Firebase(FIREBASE_URL + '/users/' + $scope.whichuser + '/meetings/' + $scope.whichmeeting + '/checkins');
-  var checkinsList = $firebase(ref).$asArray();
-  $scope.checkins = checkinsList;
+    $scope.addCheckin = function () {
+        var checkinObj = $firebaseObject(ref),
 
-  $scope.addCheckin = function() {
-    var checkinsObj = $firebase(ref);
+            checkinData = {
+                firstname: $scope.user.firstname,
+                lastname: $scope.user.lastname,
+                email: $scope.user.email,
+                date: Firebase.ServerValue.TIMESTAMP
+            };
 
-    var myData = {
-      firstname: $scope.user.firstname,
-      lastname: $scope.user.lastname,
-      email: $scope.user.email,
-      date: Firebase.ServerValue.TIMESTAMP
-    };
+        ref.push(checkinData, function () {
+            $location.path('/checkins/' + $scope.whichuser + '/' + $scope.whichmeeting + '/checkinsList');
+        });
+    }; //addCheckin
 
-    checkinsObj.$push(myData).then(function() {
-      $location.path('/checkins/' + $scope.whichuser + '/' +
-        $scope.whichmeeting + '/checkinsList');
-    }); //data sent to firebase.
-  } //addCheckin
+    $scope.deleteCheckin = function (id) {
+        var record = new Firebase(FIREBASE_URL + '/users/' + $scope.whichuser + '/meetings/' + $scope.whichmeeting + '/checkins/' + id),
 
-  $scope.deleteCheckin = function(id) {
-    var record = $firebase(ref);
-    record.$remove(id);
-  } //delete Checkin
+            recordObj = $firebaseObject(record);
 
-  $scope.pickRandom = function() {
-    var whichRecord = Math.round(Math.random() * checkinsList.length);
-    $scope.recordId = checkinsList.$keyAt(whichRecord);
-  } //pick random
+        recordObj.$remove(id);
 
-  $scope.showLove = function(myItem) {
-    myItem.show = !myItem.show;
+    }; //deleteCheckin
 
-    if(myItem.userState == 'expanded') {
-      myItem.userState = '';
-    } else {
-      myItem.userState = 'expanded';
-    }
-  } //showLove
+    $scope.pickRandom = function () {
+        var whichRecord = Math.round(Math.random() * (checkinsList.length - 1));
 
-  $scope.giveLove = function(myItem, myGift) {
-    var refLove = new Firebase(FIREBASE_URL + '/users/' +
-      $scope.whichuser + '/meetings/' +
-      $scope.whichmeeting + '/checkins/' + myItem.$id + '/awards');
-    var checkinsObj = $firebase(refLove);
+        $scope.recordId = checkinsList.$keyAt(whichRecord);
+    }; //pickRandom
 
-    var myData = {
-      name: myGift,
-      date: Firebase.ServerValue.TIMESTAMP
-    };
-    checkinsObj.$push(myData);
-  } //giveLove
+    $scope.showLove = function (myItem) {
+        myItem.show = !myItem.show;
 
-  $scope.deleteLove = function(checkinId, award) {
-    var refLove = new Firebase(FIREBASE_URL + '/users/' +
-      $scope.whichuser + '/meetings/' +
-      $scope.whichmeeting + '/checkins/' + checkinId + '/awards');
-    var record = $firebase(refLove);
-    record.$remove(award);
-  } //deleteLove
+        if (myItem.userState === "expanded") {
+            myItem.userState = '';
+        } else {
+            myItem.userState = 'expanded';
+        }
+    }; //showlove
 
+    $scope.giveLove = function (myItem, myGift) {
+        var refLove = new Firebase(FIREBASE_URL + '/users/' + $scope.whichuser + '/meetings/' +
+                                   $scope.whichmeeting + '/checkins/' + myItem.$id + '/awards'),
+            giftObj = $firebaseArray(refLove),
+            data = {
+                name: myGift,
+                date: Firebase.ServerValue.TIMESTAMP
+            };
+        giftObj.$add(data);
+    }; //givelove
 
-}); //CheckInsController
+    $scope.deleteLove = function (checkinId, award) {
+        var refLove = new Firebase(FIREBASE_URL + '/users/' + $scope.whichuser + '/meetings/' +
+                                   $scope.whichmeeting + '/checkins/' + checkinId + '/awards/' + award),
+            record = $firebaseObject(refLove);
+
+        record.$remove(award);
+    }; //deletelove
+
+}]);//CheckInsController
