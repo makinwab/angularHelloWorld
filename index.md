@@ -1,4 +1,4 @@
-# HomeStudy
+# Home Study
 
 Andela exists to train and accelerate the hidden problem solver potential that exists in you. In order for you to rise up to that potential, you must begin to develop yourself right now! The HomeStudy is here to kickstart your journey and help you lay down a solid foundation of programming.
 
